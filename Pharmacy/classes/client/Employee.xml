@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<JavaBean xmlns="http://xmlns.oracle.com/adfm/beanmodel" version="11.1.1.64.93"
+          id="Employee" Package="client" BeanClass="client.Employee"
+          isJavaBased="true">
+  <ConstructorMethod IsCollection="true" Type="client.Employee"
+                     BeanClass="client.Employee" id="Employee"/>
+</JavaBean>

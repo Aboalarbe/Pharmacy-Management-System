@@ -1,0 +1,124 @@
+package client;
+
+import client.helpedClasses.Companies;
+import client.helpedClasses.Drugs;
+
+import client.helpedClasses.Indexies;
+
+import java.awt.BorderLayout;
+
+import java.awt.Font;
+
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import java.awt.print.PrinterException;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import java.text.MessageFormat;
+
+import java.util.ArrayList;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+
+public class ShowAllIndexies extends JFrame implements ActionListener
+{
+    JButton print;
+    JTable table;
+    ArrayList<Indexies>allIndexies=new ArrayList<Indexies>(); // to store in it the data which returned from the database
+
+    public ShowAllIndexies() {
+        super("All Indexies");
+        setLocationRelativeTo(null);
+        setExtendedState(MAXIMIZED_BOTH);
+        setVisible(true);
+    }
+
+    public void displayallIndexies() 
+    {
+        table=new JTable();
+        DefaultTableModel model=new DefaultTableModel();
+        //To set the Caption of the table column name
+        Object[]columnNames =new Object[6];
+        columnNames[0]="Id";
+        columnNames[1]="Name";
+        columnNames[2]="Side Effectts";
+        columnNames[3]="Effective Materials";
+        columnNames[4]="Contraindications";
+        columnNames[5]="Dosage";
+        try {
+            getDrugDataFromDatabase();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(null,"("+ e.getErrorCode()+")"+" "+e.getMessage(),"Error",0);
+        }
+        model.setColumnIdentifiers(columnNames); // set the column names from the above array
+        // get the affective data from the helped class which created in client.helpedClasses.
+        Object[] rowData=new Object[6];
+        for(int i=0;i<allIndexies.size();i++) {
+            rowData[0]=allIndexies.get(i).getId();
+            rowData[1]=allIndexies.get(i).getName();
+            rowData[2]=allIndexies.get(i).getSideEffects();
+            rowData[3]=allIndexies.get(i).getEffectiveMaterials();
+            rowData[4]=allIndexies.get(i).getContraindications();
+            rowData[5]=allIndexies.get(i).getDosage();
+            model.addRow(rowData);
+        }
+        print=new JButton("Print");
+        print.addActionListener(this);
+        table.setModel(model);
+        table.setEnabled(false);
+        table.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 20));
+        table.setAutoscrolls(true);
+        table.setFillsViewportHeight(true); 
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        table.setRowHeight(30);
+        table.setFont(new Font("sansSerif",0,18));
+        JPanel panel=new JPanel();
+        panel.setLayout(new BorderLayout());
+        JScrollPane pane=new JScrollPane(table);
+        panel.add(print,BorderLayout.AFTER_LAST_LINE);
+        panel.add(pane,BorderLayout.CENTER);
+        this.setContentPane(panel);
+        
+    }
+    public void actionPerformed(ActionEvent source) 
+    {
+        if(source.getSource()==print) 
+        {
+            MessageFormat header=new MessageFormat("Pharmacy Indexing");
+            MessageFormat footer=new MessageFormat("Page (1)");
+            try {
+                table.print(JTable.PrintMode.FIT_WIDTH,header,footer);
+            } catch (PrinterException e) {
+                JOptionPane.showMessageDialog(null, e.getMessage(), "Error", 0);
+            }
+        }
+    }
+    public void getDrugDataFromDatabase() throws SQLException {
+        Connection conn=Database.getConnection();
+        PreparedStatement PreparedStatement=conn.prepareStatement("select * from indexing order by id");
+        ResultSet resultset=PreparedStatement.executeQuery();
+        while(resultset.next()) {
+            allIndexies.add(new Indexies
+                         (resultset.getInt("id"),
+                         resultset.getString("name"),
+                         resultset.getString("sideeffects"),
+                         resultset.getString("effectivematerial"),
+                         resultset.getString("contraindications"),
+                         resultset.getString("dosage"))
+                         );
+        }
+        conn.close();
+    }
+}
